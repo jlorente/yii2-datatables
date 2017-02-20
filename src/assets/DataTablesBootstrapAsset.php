@@ -1,31 +1,33 @@
 <?php
+
 /**
  * @copyright Federico Nicolás Motta
  * @author Federico Nicolás Motta <fedemotta@gmail.com>
  * @license http://opensource.org/licenses/mit-license.php The MIT License (MIT)
  * @package yii2-widget-datatables
  */
-namespace fedemotta\datatables;
+
+namespace fedemotta\datatables\assets;
+
 use yii\web\AssetBundle;
 
 /**
- * Asset for the DataTables TableTools JQuery plugin
+ * Asset for the DataTables Bootstrap JQuery plugin.
+ * 
  * @author Federico Nicolás Motta <fedemotta@gmail.com>
  */
-class DataTablesTableToolsAsset extends AssetBundle 
-{
-    public $sourcePath = '@bower/datatables-tabletools'; 
+class DataTablesBootstrapAsset extends AssetBundle {
 
+    public $sourcePath = '@bower/datatables-bootstrap3';
     public $css = [
-        "css/dataTables.tableTools.css",
+        "BS3/assets/css/datatables.css",
     ];
-
     public $js = [
-        "js/dataTables.tableTools.js",
+        "BS3/assets/js/datatables.js",
     ];
-
     public $depends = [
         'yii\web\JqueryAsset',
         'fedemotta\datatables\DataTablesAsset',
     ];
+
 }
