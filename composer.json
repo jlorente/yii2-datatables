@@ -1,5 +1,5 @@
 {
-    "name": "jlorente/yii2-widget-datatables",
+    "name": "jlorente/yii2-datatables",
     "description": "A Yii2 extension to provide the framework with the JQuery DataTables plugin",
     "type": "yii2-extension",
     "minimum-stability": "stable",
