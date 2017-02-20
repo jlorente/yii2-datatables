@@ -1,6 +1,6 @@
 {
     "name": "jlorente/yii2-widget-datatables",
-    "description": "DataTables widget for Yii2",
+    "description": "A Yii2 extension to provide the framework with the JQuery DataTables plugin",
     "type": "yii2-extension",
     "minimum-stability": "stable",
     "keywords": ["yii2", "extension", "jquery", "datatables", "table", "javascript", "library"],
@@ -11,12 +11,12 @@
     },
     "authors": [
         {
-            "name": "Federico Nicolás Motta",
-            "email": "fedemotta@gmail.com"
-        },
-        {
             "name": "José Lorente Martín",
             "email": "jose.lorente.martin@gmail.com"
+        },
+        {
+            "name": "Federico Nicolás Motta",
+            "email": "fedemotta@gmail.com"
         }
     ],
     "require": {
@@ -26,7 +26,7 @@
     },
     "autoload": {
         "psr-4": {
-            "fedemotta\\datatables\\": "src/"
+            "jlorente\\datatables\\": "src/"
         }
     }
 }

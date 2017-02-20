@@ -7,7 +7,7 @@
  * @package yii2-widget-datatables
  */
 
-namespace fedemotta\datatables\assets;
+namespace jlorente\datatables\assets;
 
 use yii\web\AssetBundle;
 

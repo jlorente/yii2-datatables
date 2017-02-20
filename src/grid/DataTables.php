@@ -1,24 +1,28 @@
 <?php
 
 /**
- * @copyright Federico Nicolás Motta
- * @author Federico Nicolás Motta <fedemotta@gmail.com>
+ * @author	José Lorente <jose.lorente.martin@gmail.com>
+ * @copyright	José Lorente <jose.lorente.martin@gmail.com>
  * @license http://opensource.org/licenses/mit-license.php The MIT License (MIT)
- * @package yii2-widget-datatables
+ * @version	1.0
  */
 
-namespace fedemotta\datatables\widgets;
+namespace jlorente\datatables\grid;
 
-use yii\helpers\Json;
-use yii\helpers\ArrayHelper;
-use yii\helpers\Html;
+use yii\grid\GridView;
+use yii\helpers\Html,
+    yii\helpers\Json;
 
 /**
- * Datatables Yii2 widget.
  * 
+ * Class to be used in the Server-side processing requests of the DataTables 
+ * plugin.
+ * 
+ * @see http://datatables.net/manual/server-side for more info
+ * @author José Lorente <jose.lorente.martin@gmail.com>
  * @author Federico Nicolás Motta <fedemotta@gmail.com>
  */
-class DataTables extends \yii\grid\GridView {
+class DataTables extends GridView {
 
     /**
      * @var array the HTML attributes for the container tag of the datatables view.
@@ -40,30 +44,18 @@ class DataTables extends \yii\grid\GridView {
     public $clientOptions = [];
 
     /**
-     * Runs the widget.
+     * @inheritdoc
+     */
+    public $dataColumnClass = 'jlorente\\datatables\\grid\\DataColumn';
+
+    /**
+     * @inheritdoc
      */
     public function run() {
-        $clientOptions = $this->getClientOptions();
-        $view = $this->getView();
-        $id = $this->tableOptions['id'];
-
-        //Bootstrap3 Asset by default
-        DataTablesBootstrapAsset::register($view);
-
-        //TableTools Asset if needed
-        if (isset($clientOptions["tableTools"]) || (isset($clientOptions["dom"]) && strpos($clientOptions["dom"], 'T') >= 0)) {
-            $tableTools = DataTablesTableToolsAsset::register($view);
-            //SWF copy and download path overwrite
-            $clientOptions["tableTools"]["sSwfPath"] = $tableTools->baseUrl . "/swf/copy_csv_xls_pdf.swf";
-        }
-        $options = Json::encode($clientOptions);
-        $view->registerJs("jQuery('#$id').DataTable($options);");
-
-        //base list view run
+        $this->registerClientOptions();
         if ($this->showOnEmpty || $this->dataProvider->getCount() > 0) {
             $content = preg_replace_callback("/{\\w+}/", function ($matches) {
                 $content = $this->renderSection($matches[0]);
-
                 return $content === false ? $matches[0] : $content;
             }, $this->layout);
         } else {
@@ -97,14 +89,39 @@ class DataTables extends \yii\grid\GridView {
         if (!isset($this->tableOptions['id'])) {
             $this->tableOptions['id'] = 'datatables_' . $this->getId();
         }
+
+        DataTablesBootstrapAsset::register($this->view);
     }
 
     /**
-     * Returns the options for the datatables view JS widget.
+     * Registers the JS options for the datatables plugin.
+     * 
      * @return array the options
      */
-    protected function getClientOptions() {
-        return $this->clientOptions;
+    protected function registerClientOptions() {
+        $cOptions = $this->clientOptions;
+        //TableTools Asset if needed
+        if (isset($cOptions["tableTools"]) || (isset($cOptions["dom"]) && strpos($cOptions["dom"], 'T') >= 0)) {
+            $tableTools = DataTablesTableToolsAsset::register($this->view);
+            //SWF copy and download path overwrite
+            $cOptions["tableTools"]["sSwfPath"] = $tableTools->baseUrl . "/swf/copy_csv_xls_pdf.swf";
+        }
+        $this->ensureColumnsConfiguration($cOptions);
+        $options = Json::encode($cOptions);
+        $this->view->registerJs("jQuery('#{$this->tableOptions['id']}').DataTable($options);");
+    }
+
+    /**
+     * Ensures the columns configuration on the options array.
+     * 
+     * @param array $options
+     */
+    protected function ensureColumnsConfiguration(&$options) {
+        $col = [];
+        foreach ($this->columns as $column) {
+            $col[] = $column->getConfiguration();
+        }
+        $options['columns'] = $col;
     }
 
 }
