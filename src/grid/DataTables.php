@@ -11,7 +11,10 @@ namespace jlorente\datatables\grid;
 
 use yii\grid\GridView;
 use yii\helpers\Html,
-    yii\helpers\Json;
+    yii\helpers\Json,
+    yii\helpers\ArrayHelper;
+use jlorente\datatables\assets\DataTablesBootstrapAsset,
+    jlorente\datatables\assets\DataTablesTableToolsAsset;
 
 /**
  * 
@@ -67,20 +70,13 @@ class DataTables extends GridView {
 
     /**
      * Initializes the datatables widget disabling some GridView options like 
-     * search, sort and pagination and using DataTables JS functionalities 
-     * instead.
+     * search and using DataTables JS functionalities instead.
      */
     public function init() {
         parent::init();
 
         //disable filter model by grid view
         $this->filterModel = null;
-
-        //disable sort by grid view
-        $this->dataProvider->sort = false;
-
-        //disable pagination by grid view
-        $this->dataProvider->pagination = false;
 
         //layout showing only items
         $this->layout = "{items}";
@@ -100,13 +96,9 @@ class DataTables extends GridView {
      */
     protected function registerClientOptions() {
         $cOptions = $this->clientOptions;
-        //TableTools Asset if needed
-        if (isset($cOptions["tableTools"]) || (isset($cOptions["dom"]) && strpos($cOptions["dom"], 'T') >= 0)) {
-            $tableTools = DataTablesTableToolsAsset::register($this->view);
-            //SWF copy and download path overwrite
-            $cOptions["tableTools"]["sSwfPath"] = $tableTools->baseUrl . "/swf/copy_csv_xls_pdf.swf";
-        }
+
         $this->ensureColumnsConfiguration($cOptions);
+        $this->ensurePagination($cOptions);
         $options = Json::encode($cOptions);
         $this->view->registerJs("jQuery('#{$this->tableOptions['id']}').DataTable($options);");
     }
@@ -116,12 +108,76 @@ class DataTables extends GridView {
      * 
      * @param array $options
      */
-    protected function ensureColumnsConfiguration(&$options) {
+    protected function ensureColumnsConfiguration(array &$options) {
         $col = [];
         foreach ($this->columns as $column) {
             $col[] = $column->getConfiguration();
         }
         $options['columns'] = $col;
+    }
+
+    /**
+     * Ensures the correct pagination when ajax option is set.
+     * 
+     * @param array $options
+     */
+    protected function ensurePagination(array &$options) {
+        if (isset($options['serverSide']) === true && $options['serverSide'] === true) {
+            $this->ensureLengthMenu($options);
+            $options['deferLoading'] = $this->dataProvider->getTotalCount();
+            $options['processing'] = true;
+        }
+    }
+
+    /**
+     * Ensures the length menu options with the data obtained from the 
+     * data provider.
+     * 
+     * @param array $options
+     */
+    protected function ensureLengthMenu(array &$options) {
+        if (!isset($options['lengthMenu'])) {
+            $options['lengthMenu'] = [10, 25, 50, 100];
+        }
+        $options['pageLength'] = $this->dataProvider->getPagination()->pageSize;
+        $aux = null;
+        for ($i = 0, $t = count($options['lengthMenu']); $i < $t; ++$i) {
+            if ($aux !== null) {
+                $auxB = $options['lengthMenu'][$i];
+                $options['lengthMenu'][$i] = $aux;
+                $aux = $auxB;
+            } else {
+                if ($options['pageLength'] <= $options['lengthMenu'][$i]) {
+                    if ($options['pageLength'] === $options['lengthMenu'][$i]) {
+                        break;
+                    } else {
+                        $aux = $options['lengthMenu'][$i];
+                        $options['lengthMenu'][$i] = $options['pageLength'];
+                    }
+                }
+            }
+        }
+        if ($aux !== null) {
+            $options['lengthMenu'][] = $aux;
+        }
+    }
+
+    /**
+     * Disables the pager widget.
+     * 
+     * @return string the rendering result
+     */
+    public function renderPager() {
+        return '';
+    }
+
+    /**
+     * Disables the sorter widget.
+     * 
+     * @return string the rendering result
+     */
+    public function renderSorter() {
+        return '';
     }
 
 }

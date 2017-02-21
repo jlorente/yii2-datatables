@@ -27,7 +27,7 @@ class DataTablesTableToolsAsset extends AssetBundle {
     ];
     public $depends = [
         'yii\web\JqueryAsset',
-        'jlorente\datatables\DataTablesAsset',
+        'jlorente\datatables\assets\DataTablesAsset',
     ];
 
 }

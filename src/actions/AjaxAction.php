@@ -13,7 +13,7 @@ use Yii;
 use yii\base\Action,
     yii\base\InvalidConfigException;
 use yii\web\Response;
-use yii\db\ActiveQuery;
+use jlorente\datatables\models\DataTablesModelInterface;
 
 /**
  * Action to process ajax requests from DataTables plugin.
@@ -26,7 +26,7 @@ class AjaxAction extends Action {
     /**
      * @var ActiveQuery
      */
-    protected $query;
+    public $dataTablesModelClass;
 
     /**
      *
@@ -35,29 +35,11 @@ class AjaxAction extends Action {
     public $modelClass = 'jlorente\\datatables\\models\\SearchModel';
 
     /**
-     * Query setter method.
-     * 
-     * @param ActiveQuery $query
-     */
-    public function setQuery(ActiveQuery $query) {
-        $this->query = $query;
-    }
-
-    /**
-     * Query getter method.
-     * 
-     * @return ActiveQuery
-     */
-    public function getQuery() {
-        return $this->query;
-    }
-
-    /**
      * @inheritdoc
      */
     public function init() {
-        if ($this->query === null) {
-            throw new InvalidConfigException(get_class($this) . '::$query must be set.');
+        if ($this->dataTablesModelClass === null) {
+            throw new InvalidConfigException('dataTablesModelClass must be set.');
         }
     }
 
@@ -65,18 +47,15 @@ class AjaxAction extends Action {
      * @inheritdoc
      */
     public function run() {
-        $model = new $this->modelClass();
-        $model->query = $this->query;
-        $model->load(Yii::$app->request->getBodyParams());
-        $dataProvider = $model->search();
+        $dataTablesModelClass = $this->dataTablesModelClass;
+        /* @var $model \jlorente\datatables\models\SearchModel */
+        $model = new $this->modelClass([
+            'searchModel' => new $dataTablesModelClass()
+        ]);
+        $model->load(Yii::$app->request->queryParams, '');
         Yii::$app->response->format = Response::FORMAT_JSON;
         try {
-            return [
-                'draw' => (int) Yii::$app->request->getBodyParam('draw', 1),
-                'recordsTotal' => (int) $dataProvider->getTotalCount(),
-                'recordsFiltered' => (int) $dataProvider->getCount(),
-                'data' => $dataProvider->getModels(),
-            ];
+            return $model->getResponse();
         } catch (\Exception $e) {
             return ['error' => $e->getMessage()];
         }

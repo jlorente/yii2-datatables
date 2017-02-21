@@ -3,7 +3,7 @@
 /**
  * @author	José Lorente <jose.lorente.martin@gmail.com>
  * @copyright	José Lorente <jose.lorente.martin@gmail.com>
- * @license http://opensource.org/licenses/mit-license.php The MIT License (MIT)
+ * @license     http://opensource.org/licenses/mit-license.php The MIT License (MIT)
  * @version	1.0
  */
 
