@@ -23,7 +23,7 @@ or add
 ...
     "require": {
         // ... other configurations ...
-        "jlorente/yii2-command-handler": "*"
+        "jlorente/yii2-datatables": "*"
     }
 ```
 
