@@ -24,9 +24,9 @@ use jlorente\datatables\models\DataTablesModelInterface;
 class AjaxAction extends Action {
 
     /**
-     * @var ActiveQuery
+     * @var DataTablesModelInterface
      */
-    public $dataTablesModelClass;
+    public $dataTablesModelInterface;
 
     /**
      *
@@ -38,8 +38,8 @@ class AjaxAction extends Action {
      * @inheritdoc
      */
     public function init() {
-        if ($this->dataTablesModelClass === null) {
-            throw new InvalidConfigException('dataTablesModelClass must be set.');
+        if ($this->dataTablesModelInterface === null) {
+            throw new InvalidConfigException('dataTablesModelInterface must be set.');
         }
     }
 
@@ -47,10 +47,9 @@ class AjaxAction extends Action {
      * @inheritdoc
      */
     public function run() {
-        $dataTablesModelClass = $this->dataTablesModelClass;
         /* @var $model \jlorente\datatables\models\SearchModel */
         $model = new $this->modelClass([
-            'searchModel' => new $dataTablesModelClass()
+            'searchModel' => $this->dataTablesModelInterface
         ]);
         $model->load(Yii::$app->request->queryParams, '');
         Yii::$app->response->format = Response::FORMAT_JSON;
