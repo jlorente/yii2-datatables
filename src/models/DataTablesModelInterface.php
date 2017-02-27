@@ -32,4 +32,11 @@ interface DataTablesModelInterface {
      * @return QueryInterface
      */
     public function getQuery();
+    
+    /**
+     * 
+     * @param QueryInterface $query
+     * @param string $value
+     */
+    public function searchFree($query, $value);
 }

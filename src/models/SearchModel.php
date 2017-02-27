@@ -138,6 +138,9 @@ class SearchModel extends Model {
                 $query->andWhere(['like', $column['data'], $column['search']['value']]);
             }
         }
+        if (empty($this->search['value']) === false) {
+            $this->searchModel->searchFree($query, $this->search['value']);
+        }
         return new ActiveDataProvider([
             'query' => $query
         ]);
