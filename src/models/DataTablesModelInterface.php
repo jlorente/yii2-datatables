@@ -22,6 +22,7 @@ interface DataTablesModelInterface {
     /**
      * Gets the columns used to display and search the datatable.
      * 
+     * @return array The columns to be displayed and searched.
      * @see \yii\grid\GridView::$columns to see the column format.
      */
     public function getColumns();
@@ -32,8 +33,16 @@ interface DataTablesModelInterface {
      * @return QueryInterface
      */
     public function getQuery();
-    
+
     /**
+     * 
+     * @return array The attributes to use in the Sort model.
+     * @see \yii\data\Sort::$attributes to see the column format.
+     */
+    public function getSortAttributes();
+
+    /**
+     * Custom search implementation for the main search box.
      * 
      * @param QueryInterface $query
      * @param string $value

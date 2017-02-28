@@ -26,8 +26,7 @@ class ActiveDataProvider extends BaseActiveDataProvider {
      */
     public function __construct($config = []) {
         parent::__construct(ArrayHelper::merge([
-                    'query' => $config['query']
-                    , 'sort' => [
+                    'sort' => [
                         'class' => Sort::className()
                         , 'sortParam' => 'order'
                     ],

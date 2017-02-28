@@ -143,6 +143,9 @@ class SearchModel extends Model {
         }
         return new ActiveDataProvider([
             'query' => $query
+            , 'sort' => [
+                'attributes' => $this->searchModel->getSortAttributes()
+            ]
         ]);
     }
 
