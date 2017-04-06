@@ -25,8 +25,11 @@ use yii\grid\DataColumn as BaseDataColumn;
  */
 class DataColumn extends BaseDataColumn implements ColumnInterface {
 
+    public $render;
     public $searchable = true;
     public $orderable = true;
+    public $clientVisible = true;
+    public $orderData;
 
     /**
      * @inheritdoc
@@ -51,6 +54,7 @@ class DataColumn extends BaseDataColumn implements ColumnInterface {
             , 'name' => $this->getHeaderCellLabel()
             , 'searchable' => $this->searchable
             , 'orderable' => $this->orderable
+            , 'visible' => $this->clientVisible
         ];
 
         if ($this->format === 'html') {
@@ -60,6 +64,12 @@ function (nTd, sData, oData, iRow, iCol) {
 }
 JS
             );
+        }
+        if ($this->render !== null) {
+            $conf['render'] = $this->render;
+        }
+        if ($this->orderData !== null) {
+            $conf['orderData'] = $this->orderData;
         }
         return $conf;
     }

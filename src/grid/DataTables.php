@@ -10,11 +10,11 @@
 namespace jlorente\datatables\grid;
 
 use yii\grid\GridView;
-use yii\helpers\Html,
+use yii\helpers\Url,
+    yii\helpers\Html,
     yii\helpers\Json,
     yii\helpers\ArrayHelper;
-use jlorente\datatables\assets\DataTablesBootstrapAsset,
-    jlorente\datatables\assets\DataTablesTableToolsAsset;
+use jlorente\datatables\assets\DataTablesBootstrapAsset;
 
 /**
  * 
@@ -47,6 +47,23 @@ class DataTables extends GridView {
     public $clientOptions = [];
 
     /**
+     * The internal url used to create the link. Don't include the specific 
+     * model attribute, it must be specified in rowLinkAttribute param.
+     * 
+     * @var mixed 
+     * @see \yii\helpers\Url::to()
+     */
+    public $rowLink;
+
+    /**
+     * The attribute of the model used to create the link. If not specified, the 
+     * primaryKey method will be used.
+     * 
+     * @var mixed 
+     */
+    public $rowLinkAttribute;
+
+    /**
      * @inheritdoc
      */
     public $dataColumnClass = 'jlorente\\datatables\\grid\\DataColumn';
@@ -55,9 +72,12 @@ class DataTables extends GridView {
      * @inheritdoc
      */
     public function run() {
-        $this->registerClientOptions();
         if ($this->showOnEmpty || $this->dataProvider->getCount() > 0) {
-            $content = preg_replace_callback("/{\\w+}/", function ($matches) {
+            $this->registerClientOptions();
+            if ($this->rowLink !== null) {
+                $this->registerRowLink();
+            }
+            $content = preg_replace_callback('/{\\w+}/', function ($matches) {
                 $content = $this->renderSection($matches[0]);
                 return $content === false ? $matches[0] : $content;
             }, $this->layout);
@@ -160,6 +180,68 @@ class DataTables extends GridView {
         if ($aux !== null) {
             $options['lengthMenu'][] = $aux;
         }
+    }
+
+    /**
+     * Ensures the rowOptions param for be used in the row link feature.
+     * 
+     * @param array $placeholders
+     */
+    protected function ensureRowOptionsForRowLink($placeholders) {
+        if ($this->rowOptions instanceof Closure) {
+            $nestedRowOptions = clone $this->rowOptions;
+        } else {
+            $rowOptionsWrapper = $this->rowOptions;
+            $nestedRowOptions = function () use ($rowOptionsWrapper) {
+                return $rowOptionsWrapper;
+            };
+        }
+        $this->rowOptions = function($model, $key, $index, $grid) use ($nestedRowOptions, $placeholders) {
+            $options = call_user_func($nestedRowOptions, $model, $key, $index, $grid);
+            foreach ($placeholders as $placeholder => $attribute) {
+                $options['data-' . $placeholder] = ArrayHelper::getValue($model, $attribute);
+            }
+            return $options;
+        };
+    }
+
+    /**
+     * Registers the necessary javascript for the row link feature.
+     */
+    protected function registerRowLink() {
+        $link = $this->rowLink;
+        if (is_array($link) === false) {
+            $link = [$link];
+        }
+        $attributes = $this->rowLinkAttribute;
+        if (is_array($attributes) === false) {
+            $attributes = [$attributes];
+        }
+        $placeholders = $urlPlaceHolders = [];
+        $p = 0;
+        foreach ($attributes as $linkParam => $attribute) {
+            if (is_numeric($linkParam)) {
+                $linkParam = $attribute;
+            }
+            $placeholder = '00' . $p++; //"#@€$attribute#@€";
+            $link[$linkParam] = $placeholder;
+            $placeholders['p' . $placeholder] = $attribute;
+            $urlPlaceHolders[] = $placeholder;
+        }
+        $this->ensureRowOptionsForRowLink($placeholders);
+        $url = Url::to($link);
+        $jsPlaceholders = Json::encode($urlPlaceHolders);
+        $this->view->registerJs(<<<JS
+var _placeholders = $jsPlaceholders;
+$('#{$this->tableOptions['id']} tbody').on('click', 'tr', function () {
+    var _url = '$url';
+    for (var i = 0; i < _placeholders.length; ++i) {
+        _url = _url.replace(_placeholders[i], $(this).data('p' + _placeholders[i]));
+    }
+    window.location.href = _url;
+});  
+JS
+        );
     }
 
     /**

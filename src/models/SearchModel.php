@@ -196,6 +196,7 @@ class SearchModel extends Model {
                             , 'grid' => $this
                                         ], $column));
             }
+
             if (!$column->visible) {
                 unset($this->dataColumns[$i]);
                 continue;
