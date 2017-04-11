@@ -9,6 +9,7 @@
 
 namespace jlorente\datatables\grid;
 
+use yii\web\View;
 use yii\grid\GridView;
 use yii\helpers\Url,
     yii\helpers\Html,
@@ -69,14 +70,18 @@ class DataTables extends GridView {
     public $dataColumnClass = 'jlorente\\datatables\\grid\\DataColumn';
 
     /**
+     * Client variables to add to the headers.
+     * 
+     * @var array
+     */
+    protected $clientVars = [];
+
+    /**
      * @inheritdoc
      */
     public function run() {
         if ($this->showOnEmpty || $this->dataProvider->getCount() > 0) {
             $this->registerClientOptions();
-            if ($this->rowLink !== null) {
-                $this->registerRowLink();
-            }
             $content = preg_replace_callback('/{\\w+}/', function ($matches) {
                 $content = $this->renderSection($matches[0]);
                 return $content === false ? $matches[0] : $content;
@@ -119,7 +124,18 @@ class DataTables extends GridView {
 
         $this->ensureColumnsConfiguration($cOptions);
         $this->ensurePagination($cOptions);
+        if ($this->rowLink !== null) {
+            $this->ensureRowLink($cOptions);
+        }
         $options = Json::encode($cOptions);
+        
+        if (empty($this->clientVars) === false) {
+            $headerVars = '';
+            foreach ($this->clientVars as $jsVar) {
+                $headerVars .= 'var ' . $jsVar[0] . ' = ' . Json::encode($jsVar[1]) . ';';
+            }
+            $this->view->registerJs($headerVars, View::POS_HEAD);
+        }
         $this->view->registerJs("jQuery('#{$this->tableOptions['id']}').DataTable($options);");
     }
 
@@ -183,26 +199,24 @@ class DataTables extends GridView {
     }
 
     /**
-     * Ensures the rowOptions param for be used in the row link feature.
+     * Ensures the createdRow client param for be used in the row link feature.
      * 
      * @param array $placeholders
      */
-    protected function ensureRowOptionsForRowLink($placeholders) {
-        if ($this->rowOptions instanceof Closure) {
-            $nestedRowOptions = clone $this->rowOptions;
-        } else {
-            $rowOptionsWrapper = $this->rowOptions;
-            $nestedRowOptions = function () use ($rowOptionsWrapper) {
-                return $rowOptionsWrapper;
-            };
-        }
-        $this->rowOptions = function($model, $key, $index, $grid) use ($nestedRowOptions, $placeholders) {
-            $options = call_user_func($nestedRowOptions, $model, $key, $index, $grid);
-            foreach ($placeholders as $placeholder => $attribute) {
-                $options['data-' . $placeholder] = ArrayHelper::getValue($model, $attribute);
-            }
-            return $options;
-        };
+    protected function ensureRowLink(array &$options) {
+        $this->registerRowLink();
+
+        $options['createdRow'] = new \yii\web\JsExpression(<<<JS
+function(row, data, dataIndex) { 
+    var _rowUrl = {$this->getJsVariable('url')[0]};
+    var _placeholders = {$this->getJsVariable('placeholders')[0]};
+    for (var i = 0; i < _placeholders.length; ++i) {
+        _rowUrl = _rowUrl.replace(_placeholders[i][0], data[_placeholders[i][1]]);
+    }
+    $(row).data('url', _rowUrl);
+}
+JS
+        );
     }
 
     /**
@@ -223,22 +237,15 @@ class DataTables extends GridView {
             if (is_numeric($linkParam)) {
                 $linkParam = $attribute;
             }
-            $placeholder = '00' . $p++; //"#@€$attribute#@€";
+            $placeholder = '00' . $p++;
             $link[$linkParam] = $placeholder;
-            $placeholders['p' . $placeholder] = $attribute;
-            $urlPlaceHolders[] = $placeholder;
+            $placeholders[] = [$placeholder, $attribute];
         }
-        $this->ensureRowOptionsForRowLink($placeholders);
-        $url = Url::to($link);
-        $jsPlaceholders = Json::encode($urlPlaceHolders);
+        $this->setJsVariable('placeholders', $placeholders);
+        $this->setJsVariable('url', Url::to($link));
         $this->view->registerJs(<<<JS
-var _placeholders = $jsPlaceholders;
 $('#{$this->tableOptions['id']} tbody').on('click', 'tr', function () {
-    var _url = '$url';
-    for (var i = 0; i < _placeholders.length; ++i) {
-        _url = _url.replace(_placeholders[i], $(this).data('p' + _placeholders[i]));
-    }
-    window.location.href = _url;
+    window.location.href = $(this).data('url');
 });  
 JS
         );
@@ -260,6 +267,25 @@ JS
      */
     public function renderSorter() {
         return '';
+    }
+
+    /**
+     * Sets a variable that will be encoded to Js.
+     * 
+     * @param string $name
+     * @param mixed $value
+     */
+    protected function setJsVariable($name, $value) {
+        $this->clientVars[$name] = ['_' . md5($this->tableOptions['id'] . '-' . $name), $value];
+    }
+
+    /**
+     * 
+     * @param string $name
+     * @return array
+     */
+    protected function getJsVariable($name) {
+        return $this->clientVars[$name];
     }
 
 }
