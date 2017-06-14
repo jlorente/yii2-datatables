@@ -131,8 +131,8 @@ class SearchModel extends Model {
      * @return ActiveDataProvider
      */
     public function search() {
-        $this->query = $this->searchModel->getQuery();
-        $query = clone $this->query;
+        $dProvider = $this->searchModel->getDataProvider();
+        $query = $dProvider->query;
         foreach ($this->columns as $column) {
             if (isset($column['searchable']) === true && $column['searchable'] === 'true' && empty($column['search']['value']) === false) {
                 $query->andWhere(['like', $column['data'], $column['search']['value']]);
@@ -141,12 +141,7 @@ class SearchModel extends Model {
         if (empty($this->search['value']) === false) {
             $this->searchModel->searchFree($query, $this->search['value']);
         }
-        return new ActiveDataProvider([
-            'query' => $query
-            , 'sort' => [
-                'attributes' => $this->searchModel->getSortAttributes()
-            ]
-        ]);
+        return $dProvider;
     }
 
     /**

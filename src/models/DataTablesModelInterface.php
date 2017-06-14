@@ -10,6 +10,7 @@
 namespace jlorente\datatables\models;
 
 use yii\db\QueryInterface;
+use jlorente\datatables\data\ActiveDataProvider;
 
 /**
  * Action to process ajax requests from DataTables plugin.
@@ -28,12 +29,12 @@ interface DataTablesModelInterface {
     public function getColumns();
 
     /**
-     * Gets the Query object to search the model.
+     * Gets the ActiveDataProvider object to search the model.
      * 
-     * @return QueryInterface
+     * @return ActiveDataProvider
      */
-    public function getQuery();
-
+    public function getDataProvider();
+    
     /**
      * 
      * @return array The attributes to use in the Sort model.
