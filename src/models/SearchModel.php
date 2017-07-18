@@ -130,7 +130,8 @@ class SearchModel extends Model {
      * 
      * @return ActiveDataProvider
      */
-    public function search() {
+    public function search($searchModelParams = null) {
+        $this->searchModel->load($searchModelParams);
         $dProvider = $this->searchModel->getDataProvider();
         $query = $dProvider->query;
         foreach ($this->columns as $column) {
