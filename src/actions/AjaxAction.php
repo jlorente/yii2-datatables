@@ -52,6 +52,7 @@ class AjaxAction extends Action {
             'searchModel' => $this->dataTablesModelInterface
         ]);
         $model->load(Yii::$app->request->queryParams, '');
+        $this->dataTablesModelInterface->load(Yii::$app->request->queryParams);
         Yii::$app->response->format = Response::FORMAT_JSON;
         try {
             return $model->getResponse();
