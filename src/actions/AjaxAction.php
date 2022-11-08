@@ -48,11 +48,17 @@ class AjaxAction extends Action {
      */
     public function run() {
         /* @var $model \jlorente\datatables\models\SearchModel */
+        if (is_callable($this->dataTablesModelInterface)) {
+            $searchModel = call_user_func($this->dataTablesModelInterface);
+        } else {
+            $searchModel = $this->dataTablesModelInterface;
+        }
+        
         $model = new $this->modelClass([
-            'searchModel' => $this->dataTablesModelInterface
+            'searchModel' => $searchModel,
         ]);
         $model->load(Yii::$app->request->queryParams, '');
-        $this->dataTablesModelInterface->load(Yii::$app->request->queryParams);
+        $searchModel->load(Yii::$app->request->queryParams);
         Yii::$app->response->format = Response::FORMAT_JSON;
         try {
             return $model->getResponse();
