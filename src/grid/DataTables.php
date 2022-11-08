@@ -1,10 +1,10 @@
 <?php
 
 /**
- * @author	José Lorente <jose.lorente.martin@gmail.com>
- * @copyright	José Lorente <jose.lorente.martin@gmail.com>
+ * @author      José Lorente <jose.lorente.martin@gmail.com>
+ * @copyright   José Lorente <jose.lorente.martin@gmail.com>
  * @license http://opensource.org/licenses/mit-license.php The MIT License (MIT)
- * @version	1.0
+ * @version     1.0
  */
 
 namespace jlorente\datatables\grid;
@@ -237,7 +237,7 @@ JS
             if (is_numeric($linkParam)) {
                 $linkParam = $attribute;
             }
-            $placeholder = '00' . $p++;
+            $placeholder = '0000000' . $p++;
             $link[$linkParam] = $placeholder;
             $placeholders[] = [$placeholder, $attribute];
         }
